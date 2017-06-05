@@ -28,7 +28,7 @@ public class Graficador {
 	private static ArrayList<String> dato4 = new ArrayList<String>();
 	private static ArrayList<String> dato5 = new ArrayList<String>();
 
-	private static XYSeries datos1 = new XYSeries("Señal cardiaca");
+	private static XYSeries datos1 = new XYSeries("SeÃ±al cardiaca");
 
 	public static String separarDato(String n) {
 		char[] temp = n.toCharArray();
@@ -87,7 +87,7 @@ public class Graficador {
 	}
 
 	public static void main(String[] args) throws IOException {
-		numeroDatos = JOptionPane.showInputDialog(null, "Ingrese el número de datos que desea ver:", "Datos",
+		numeroDatos = JOptionPane.showInputDialog(null, "Ingrese el nÃºmero de datos que desea ver:", "Datos",
 				JOptionPane.QUESTION_MESSAGE);
 		dato = JOptionPane.showInputDialog(null, "Ingrese el dato que desea ver:", "Datos",
 				JOptionPane.QUESTION_MESSAGE);
@@ -113,7 +113,7 @@ public class Graficador {
 		XYSeriesCollection dataset = new XYSeriesCollection();
 		dataset.addSeries(datos1);
 
-		JFreeChart xyLineChart = ChartFactory.createXYLineChart("Señal cardiaca", "", "", dataset,
+		JFreeChart xyLineChart = ChartFactory.createXYLineChart("SeÃ±al cardiaca", "", "", dataset,
 				PlotOrientation.VERTICAL, true, true, false);
 
 		XYPlot plot = xyLineChart.getXYPlot();
@@ -125,7 +125,7 @@ public class Graficador {
 
 		ChartPanel panel = new ChartPanel(xyLineChart);
 
-		JFrame ventana = new JFrame("Gráfica Señales");
+		JFrame ventana = new JFrame("GrÃ¡fica SeÃ±ales");
 		ventana.setVisible(true);
 		ventana.setSize(800, 600);
 		ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
