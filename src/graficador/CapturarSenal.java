@@ -1,11 +1,9 @@
 package graficador;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.TooManyListenersException;
 import java.util.concurrent.ExecutorService;
@@ -16,26 +14,15 @@ import javax.comm.SerialPort;
 import javax.comm.SerialPortEvent;
 import javax.comm.SerialPortEventListener;
 import javax.comm.UnsupportedCommOperationException;
-import javax.swing.JFrame;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
+
 
 public class CapturarSenal implements Runnable, SerialPortEventListener {
+    
     static CommPortIdentifier portId;
     static Enumeration portList;
     
-    public static ArrayList<String> data = new ArrayList<String>();
-    private static XYSeries xySeries = new XYSeries("Señal cardiaca");
-    private static ArrayList<String> dato2 = new ArrayList<String>();
+    static Graficador graf;
     
-    
-
     private static ArrayList<String> datoVer = new ArrayList<String>();
     InputStream inputStream;
     SerialPort serialPort;
@@ -49,16 +36,15 @@ public class CapturarSenal implements Runnable, SerialPortEventListener {
             portId = (CommPortIdentifier) portList.nextElement();
             if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {
                 System.err.println(portId.getName());
-                 if (portId.getName().equals("COM3")) {                    
-                    new CapturarSenal();                    
+                if (portId.getName().equals("COM3")) {                    
+                    new CapturarSenal();
+                    graf = new Graficador();
                 }
             }
         }
     }
 
-    public CapturarSenal() {
-        
-        
+    public CapturarSenal() {        
         try {
             serialPort = (SerialPort) portId.open("SimpleReadApp", 3600);
         } catch (PortInUseException e) {
@@ -107,14 +93,27 @@ public class CapturarSenal implements Runnable, SerialPortEventListener {
         case SerialPortEvent.OUTPUT_BUFFER_EMPTY:
             break;
         case SerialPortEvent.DATA_AVAILABLE:
-            byte[] readBuffer = new byte[20];
-            String temp = "";
+            byte[] readBuffer = new byte[15];
+            
             try {
                 while (inputStream.available() > 0) {
-                    int numBytes = inputStream.read(readBuffer);                    
+                    int numBytes = inputStream.read(readBuffer);
+                    
                 }
-                System.err.println(new String(readBuffer));
-                data.add(new String(readBuffer));                     
+                String union = "";
+                String temp = new String (readBuffer);
+                temp = temp.trim().replaceAll("\n", "").replaceAll("\"", "").replaceAll(" ", "");
+                char[] numeros = temp.toCharArray();
+                for (int j = 0; j < numeros.length; j++) {
+                    System.err.println("AAAAAAAAA "+j+"    "+numeros[j]+esNumero(String.valueOf(numeros[j])));
+                    if(esNumero(String.valueOf(numeros[j]))){ 
+                        union += numeros[j];
+                    }
+                }
+                System.err.println(union);
+                graf.data.add(union);   
+                
+                             
                 //executor.execute(myRunnable);
             } catch (IOException e) {
                 System.out.println(e);
@@ -122,6 +121,13 @@ public class CapturarSenal implements Runnable, SerialPortEventListener {
             break;
         }
     }
-
+    
+    private static boolean esNumero(String num){
+        ArrayList<String> numeros = new ArrayList<String>();
+        numeros.add("1");numeros.add("2");numeros.add("3"); numeros.add("4"); numeros.add("5"); 
+        numeros.add("6"); numeros.add("7"); numeros.add("8"); numeros.add("9"); numeros.add("0");
+        if(numeros.contains(num))     return true;
+        else return false;       
+    }
    
 }
