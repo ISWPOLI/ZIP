@@ -1,3 +1,7 @@
+package graficador;
+
+
+import static graficador.CapturarSenal.data;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -20,116 +24,71 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 public class Graficador {
 
-	private static String numeroDatos = "";
-	private static String dato = "";
+    private static String numeroDatos = "";
+    private static String dato = "";
 
-	private static ArrayList<String> dato2 = new ArrayList<String>();
-	private static ArrayList<String> dato3 = new ArrayList<String>();
-	private static ArrayList<String> dato4 = new ArrayList<String>();
-	private static ArrayList<String> dato5 = new ArrayList<String>();
+    public static ArrayList<String> data = new ArrayList<String>();
 
-	private static XYSeries datos1 = new XYSeries("Señal cardiaca");
+    private static ArrayList<String> dato2 = new ArrayList<String>();
+    private static ArrayList<String> dato3 = new ArrayList<String>();
+    private static ArrayList<String> dato4 = new ArrayList<String>();
+    private static ArrayList<String> dato5 = new ArrayList<String>();
 
-	public static String separarDato(String n) {
-		char[] temp = n.toCharArray();
-		String resultado = "";
-		int cont = 0;
-		for (int i = 0; i < temp.length; i++) {
-			if (temp[i] != ',') {
-				resultado += temp[i];
-			}
-			if ((temp[i] == ',' || temp[i] == temp.length + 1) && cont == 0) {
-				dato2.add(resultado);
-				resultado = "";
-				cont++;
-			} else if ((temp[i] == ',' || temp[i] == temp.length + 1) && cont == 1) {
-				dato3.add(resultado);
-				resultado = "";
-				cont++;
-			} else if ((temp[i] == ',' || temp[i] == temp.length + 1) && cont == 2) {
-				dato4.add(resultado);
-				resultado = "";
-				cont++;
-			}
-		}
-		dato5.add(resultado);
-		return resultado;
-	}
+    private static XYSeries xySeries = new XYSeries("Señal cardiaca");
 
-	public static void leerArchivo() throws IOException {
-		int contadorLineas = 0;
-		File archivo = new File("../../Physionet/Datos.txt");
-		FileReader fr;
+    private static JFrame ventana;
+     
+    public Graficador() {
+        data.clear();
+        ventana = new JFrame("Gráfica Señales");
+        ventana.setVisible(true);
+        ventana.setSize(1000, 800);
+        ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
 
-		try {
-			fr = new FileReader(archivo);
-			BufferedReader br = new BufferedReader(fr);
-			String linea;
-			while ((linea = br.readLine()) != null) {
-				contadorLineas++;
-				if (contadorLineas <= Integer.valueOf(numeroDatos)) {
-					separarDato(linea);
-				}
+    
+    public static void main(String[] args) throws IOException {
+        new Graficador();
 
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        ArrayList<Integer> datoVer = new ArrayList<Integer>();
 
-	}
+        for (int i = 0; i < 100000; i++) {
+            dato2.add(String.valueOf(i));
+        }
 
-	public static void imprimir() {
-		System.out.println();
-		for (int i = 0; i < dato2.size(); i++) {
-			System.out.println(dato2.get(i));
-		}
-	}
+        Runnable myRunnable = new Runnable(){
 
-	public static void main(String[] args) throws IOException {
-		numeroDatos = JOptionPane.showInputDialog(null, "Ingrese el número de datos que desea ver:", "Datos",
-				JOptionPane.QUESTION_MESSAGE);
-		dato = JOptionPane.showInputDialog(null, "Ingrese el dato que desea ver:", "Datos",
-				JOptionPane.QUESTION_MESSAGE);
+            public synchronized void run(){                
+                for (int i = 0; i < dato2.size(); i++) {
+                    try {
+                        Thread.sleep(0);
+                    } catch (InterruptedException e) {                            
+                        e.printStackTrace();
+                    }
 
-		ArrayList<String> datoVer = new ArrayList<String>();
+                    //System.out.println("IMPRIMIENDO!!! -> "+data.get(i));
+                    xySeries.add(Double.parseDouble(dato2.get(i)), Double.parseDouble(dato2.get(i)));
 
-		if (Integer.valueOf(dato) == 1) {
-			datoVer = dato3;
-		} else if (Integer.valueOf(dato) == 2) {
-			datoVer = dato4;
-		} else if (Integer.valueOf(dato) == 3) {
-			datoVer = dato5;
-		}
+                    XYSeriesCollection dataset = new XYSeriesCollection();
+                    dataset.addSeries(xySeries);
 
-		leerArchivo();
+                    JFreeChart xyLineChart = ChartFactory.createXYLineChart("Señal cardiaca", "", "", dataset,
+                                    PlotOrientation.VERTICAL, true, true, false);
 
-		for (int i = 0; i < dato2.size(); i++) {
-			datos1.add(Double.parseDouble(dato2.get(i)), Double.parseDouble(datoVer.get(i)));
-		}
+                    XYPlot plot = xyLineChart.getXYPlot();
 
-		imprimir();
+                    XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+                    renderer.setSeriesPaint(0, Color.BLACK);
+                    renderer.setSeriesStroke(0, new BasicStroke(0.1f));
+                    plot.setRenderer(renderer);					
 
-		XYSeriesCollection dataset = new XYSeriesCollection();
-		dataset.addSeries(datos1);
+                    ChartPanel panel = new ChartPanel(xyLineChart);					
 
-		JFreeChart xyLineChart = ChartFactory.createXYLineChart("Señal cardiaca", "", "", dataset,
-				PlotOrientation.VERTICAL, true, true, false);
-
-		XYPlot plot = xyLineChart.getXYPlot();
-
-		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-		renderer.setSeriesPaint(0, Color.BLACK);
-		renderer.setSeriesStroke(0, new BasicStroke(0.5f));
-		plot.setRenderer(renderer);
-
-		ChartPanel panel = new ChartPanel(xyLineChart);
-
-		JFrame ventana = new JFrame("Gráfica Señales");
-		ventana.setVisible(true);
-		ventana.setSize(800, 600);
-		ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		ventana.add(panel);
-	}
+                    ventana.add(panel);
+                }
+            }
+            };
+            Thread thread = new Thread(myRunnable);
+            thread.start();
+    }
 }
