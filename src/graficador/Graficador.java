@@ -17,12 +17,15 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 public class Graficador {
 
-
+    public static final int TAMANOARREGLO = 1000;
+    
+    public int contador = 0;
+    
     public static ArrayList<String> data = new ArrayList<String>();
 
-    private static ArrayList<String> dato2 = new ArrayList<String>();
+    private static ArrayList<String> time = new ArrayList<String>();
 
-    private static XYSeries xySeries = new XYSeries("Señal cardiaca");
+    public static XYSeries xySeries = new XYSeries("Señal cardiaca");
 
     private static JFrame ventana;
      
@@ -33,32 +36,38 @@ public class Graficador {
         }
         ventana = new JFrame("Gráfica Señales");
         ventana.setVisible(true);
-        ventana.setSize(1000, 800);
+        ventana.setSize(800, 600);
         ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pintar();
     }
 
     public void pintar(){
         for (int i = 0; i < 100000; i++) {
-            dato2.add(String.valueOf(i));
+            time.add(String.valueOf(i));
         }
 
         Runnable myRunnable = new Runnable(){
 
             public synchronized void run(){ 
-                int i = 0;
-                while(i < data.size()){
+                
+                while(contador < data.size()){
+                    
                     try {
-                        Thread.sleep(50);
-                        System.out.println("IMPRIMIENDO!!! -> "+data.get(i));
-                    } catch (InterruptedException e) {                            
-                        System.err.println("Se salio esta webada");
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-
                     
-                    xySeries.add(Double.parseDouble(data.get(i)), Double.parseDouble(dato2.get(i)));
-
+                    if(data.size() > TAMANOARREGLO){
+                        data.remove(data.size()-999);
+                        xySeries.delete(0, 1);
+                        contador -= 1;
+                    }
+                    
+                    xySeries.add(Double.parseDouble(time.get(contador)), Double.parseDouble(data.get(contador)));
+                    
+                    System.err.println("X -> "+time.get(contador)+" Y -> "+data.get(contador));
+                    
                     XYSeriesCollection dataset = new XYSeriesCollection();
                     dataset.addSeries(xySeries);
 
@@ -69,13 +78,19 @@ public class Graficador {
 
                     XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
                     renderer.setSeriesPaint(0, Color.BLACK);
-                    renderer.setSeriesStroke(0, new BasicStroke(0.1f));
+                    renderer.setSeriesStroke(0, new BasicStroke(0.9f));
                     plot.setRenderer(renderer);					
 
                     ChartPanel panel = new ChartPanel(xyLineChart);					
 
                     ventana.add(panel);
-                    i++;
+                    contador++;
+                    /*if(data.size() > TAMANOARREGLO){
+                        contador = 0;
+                        System.err.println("TAMAÑO ANTES DE LIMPIAR -> "+data.size());
+                        //data.clear();                       
+                        System.err.println("TAMAÑO DESPUES DE LIMPIAR -> "+data.size());
+                    }*/
                 }
             }
             };

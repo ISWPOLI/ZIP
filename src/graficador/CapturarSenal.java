@@ -14,6 +14,7 @@ import javax.comm.SerialPort;
 import javax.comm.SerialPortEvent;
 import javax.comm.SerialPortEventListener;
 import javax.comm.UnsupportedCommOperationException;
+import org.jfree.data.xy.XYSeries;
 
 
 public class CapturarSenal implements Runnable, SerialPortEventListener {
@@ -93,7 +94,7 @@ public class CapturarSenal implements Runnable, SerialPortEventListener {
         case SerialPortEvent.OUTPUT_BUFFER_EMPTY:
             break;
         case SerialPortEvent.DATA_AVAILABLE:
-            byte[] readBuffer = new byte[15];
+            byte[] readBuffer = new byte[5];
             
             try {
                 while (inputStream.available() > 0) {
@@ -105,16 +106,13 @@ public class CapturarSenal implements Runnable, SerialPortEventListener {
                 temp = temp.trim().replaceAll("\n", "").replaceAll("\"", "").replaceAll(" ", "");
                 char[] numeros = temp.toCharArray();
                 for (int j = 0; j < numeros.length; j++) {
-                    System.err.println("AAAAAAAAA "+j+"    "+numeros[j]+esNumero(String.valueOf(numeros[j])));
                     if(esNumero(String.valueOf(numeros[j]))){ 
                         union += numeros[j];
                     }
                 }
-                System.err.println(union);
-                graf.data.add(union);   
                 
-                             
-                //executor.execute(myRunnable);
+                if(Integer.valueOf(union) < 900) graf.data.add(union);                  
+                
             } catch (IOException e) {
                 System.out.println(e);
             }            
