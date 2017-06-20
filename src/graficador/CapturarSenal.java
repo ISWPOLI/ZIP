@@ -1,6 +1,5 @@
 package graficador;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -15,41 +14,37 @@ import javax.comm.SerialPortEvent;
 import javax.comm.SerialPortEventListener;
 import javax.comm.UnsupportedCommOperationException;
 
+/**
+ * Clase que se encarga de recibir los datos del sensor.
+ * @author Juan Rubiano
+ * @version 1.0
+ */
 
 public class CapturarSenal implements Runnable, SerialPortEventListener {
     
+    /**
+    * Atributos del sensor
+    */
     static CommPortIdentifier portId;
     static Enumeration portList;
-    
-    static Graficador graf;
-    
-    private static ArrayList<String> datoVer = new ArrayList<String>();
     InputStream inputStream;
     SerialPort serialPort;
+    
+    //Objeto hilo
     Thread readThread;
     
-    ExecutorService executor = Executors.newFixedThreadPool(2);
-
-    public static void main(String[] args) {        
-        portList = CommPortIdentifier.getPortIdentifiers();
-        while (portList.hasMoreElements()) {
-            portId = (CommPortIdentifier) portList.nextElement();
-            if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {
-                System.err.println(portId.getName());
-                if (portId.getName().equals("COM3")) {                    
-                    new CapturarSenal();
-                    graf = new Graficador();
-                }
-            }
-        }
-    }
-
-    public CapturarSenal() {        
+    //Objeto del tipo Graficador
+    static Graficador graf; 
+    
+    //Método constructor
+    public CapturarSenal() {    
+        //Abre el puerto
         try {
             serialPort = (SerialPort) portId.open("SimpleReadApp", 3600);
         } catch (PortInUseException e) {
             System.out.println(e);
         }
+        //Inidica si el puerto está en uso
         try {
             inputStream = serialPort.getInputStream();
         } catch (IOException e) {
@@ -61,6 +56,7 @@ public class CapturarSenal implements Runnable, SerialPortEventListener {
             System.out.println(e);
         }
         serialPort.notifyOnDataAvailable(true);
+        //Atributos del puerto
         try {
             serialPort.setSerialPortParams(9600,
                 SerialPort.DATABITS_8,
@@ -69,17 +65,14 @@ public class CapturarSenal implements Runnable, SerialPortEventListener {
         } catch (UnsupportedCommOperationException e) {
             System.out.println(e);
         }
-        
+        //Inicialización del hilo
         readThread = new Thread(this);
-        executor.execute(this);
+        //Arranca el hilo
         readThread.start();
     }
 
-    public void run() {
-        
-    }
+    public void run() {}
     
-    //@Override
     public void serialEvent(SerialPortEvent event) {
         switch(event.getEventType()) {
         case SerialPortEvent.BI:
@@ -96,19 +89,28 @@ public class CapturarSenal implements Runnable, SerialPortEventListener {
             byte[] readBuffer = new byte[5];
             
             try {
+                //Si el número de puertos displonibles es mayor a 0
                 while (inputStream.available() > 0) {
+                    //Leo el dato que trae el puerto
                     int numBytes = inputStream.read(readBuffer);
                 }
+                //Se crea un String vacio
                 String union = "";
+                //Se cambia el arreglo "numBytes" a String
                 String temp = new String (readBuffer);
+                //Se quitan los espacios al final, se cambian los saltos de línea, las comillas y los espacios en blanco
                 temp = temp.trim().replaceAll("\n", "").replaceAll("\"", "").replaceAll(" ", "");
+                //Se pasa el dato a arreglo de char
                 char[] numeros = temp.toCharArray();
+                //Se recorre todo el arreglo
                 for (int j = 0; j < numeros.length; j++) {
+                    //Si el dato que se almacena es un número, se concatena al String unión.
                     if(esNumero(String.valueOf(numeros[j]))){ 
                         union += numeros[j];
                     }
                 }
                 
+                //Si el String concatenado convertido en entero es menor a 900 y mayor a 100, se llama el método "agregar"
                 if(Integer.valueOf(union) < 900 && Integer.valueOf(union) > 100) agregar(union);
                 
             } catch (IOException e) {
@@ -118,6 +120,11 @@ public class CapturarSenal implements Runnable, SerialPortEventListener {
         }
     }
     
+    /**
+     * Método que valida si el String es un número.
+     * @param String a validar
+     * @return true si es número, false si no
+     */
     private static boolean esNumero(String num){
         ArrayList<String> numeros = new ArrayList<String>();
         numeros.add("1");numeros.add("2");numeros.add("3"); numeros.add("4"); numeros.add("5"); 
@@ -126,12 +133,32 @@ public class CapturarSenal implements Runnable, SerialPortEventListener {
         else return false;       
     }
     
+    /**
+     * El método agrega el String al arreglo de datos de la clase Graficador
+     * @param String correspondiente al dato a almacena
+     */
     private static void agregar(String n){
         for (int i = 0; i < graf.data.length; i++) {
             if(i == graf.data.length-1) graf.data[graf.data.length-1] = n;
             else graf.data[i] = graf.data[i+1];
         }
-        
+    }
+    
+    public static void main(String[] args) {
+        //Inicialización del programa y apertura del puerto
+        portList = CommPortIdentifier.getPortIdentifiers();
+        while (portList.hasMoreElements()) {
+            portId = (CommPortIdentifier) portList.nextElement();
+            if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {
+                System.err.println(portId.getName());
+                if (portId.getName().equals("COM3")) {  
+                    //Inicialización de la recepción del datos desde el sensor
+                    new CapturarSenal();
+                    //Instanciación del Graficador.
+                    graf = new Graficador();
+                }
+            }
+        }
     }
    
 }
